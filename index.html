@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Invoice Generator Pro</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- ===== SIDEBAR NAV ===== -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="fa-solid fa-file-invoice-dollar"></i>
+    <span>InvoicePro</span>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-btn active" data-tab="invoice" onclick="switchTab('invoice')">
+      <i class="fa-solid fa-file-lines"></i> Invoice
+    </button>
+    <button class="nav-btn" data-tab="products" onclick="switchTab('products')">
+      <i class="fa-solid fa-box-open"></i> Products & Services
+    </button>
+    <button class="nav-btn" data-tab="settings" onclick="switchTab('settings')">
+      <i class="fa-solid fa-sliders"></i> Settings
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <span id="sidebar-powered">Powered by InvoicePro</span>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div class="main-content">
+
+  <!-- ========== TAB: INVOICE ========== -->
+  <div class="tab-panel active" id="tab-invoice">
+    <div class="page-header">
+      <h1>Create Invoice</h1>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="resetInvoice()"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+        <button class="btn btn-primary" onclick="printInvoice()"><i class="fa-solid fa-print"></i> Print / Save PDF</button>
+      </div>
+    </div>
+
+    <!-- INVOICE CARD -->
+    <div class="invoice-card" id="invoice-preview">
+
+      <!-- Invoice Top -->
+      <div class="invoice-top">
+        <div class="company-block">
+          <div class="logo-wrap" id="logo-wrap">
+            <img id="company-logo-preview" src="" alt="" style="display:none;"/>
+            <div class="logo-placeholder" id="logo-placeholder"><i class="fa-solid fa-building"></i></div>
+          </div>
+          <div class="company-info">
+            <h2 id="inv-company-name">Your Company Name</h2>
+            <p id="inv-company-tagline" class="tagline">Professional Services</p>
+            <p id="inv-company-address" class="muted">123 Business Ave, City, Country</p>
+            <p id="inv-company-email" class="muted">contact@company.com</p>
+            <p id="inv-company-phone" class="muted">+1 234 567 8900</p>
+          </div>
+        </div>
+        <div class="invoice-meta">
+          <div class="invoice-title-badge">INVOICE</div>
+          <div class="meta-grid">
+            <label>Invoice No.</label>
+            <input class="meta-input" id="inv-number" value="INV-0001" />
+            <label>Date</label>
+            <input class="meta-input" id="inv-date" type="date" />
+            <label>Due Date</label>
+            <input class="meta-input" id="inv-due" type="date" />
+            <label>Status</label>
+            <select class="meta-input" id="inv-status">
+              <option>Unpaid</option>
+              <option>Paid</option>
+              <option>Partial</option>
+              <option>Overdue</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bill To / From -->
+      <div class="bill-section">
+        <div class="bill-block">
+          <div class="bill-label">BILL TO</div>
+          <input class="bill-input bold" id="client-name" placeholder="Client Name" />
+          <input class="bill-input" id="client-company" placeholder="Company (optional)" />
+          <textarea class="bill-input" id="client-address" placeholder="Address" rows="2"></textarea>
+          <input class="bill-input" id="client-email" placeholder="Email" />
+          <input class="bill-input" id="client-phone" placeholder="Phone" />
+        </div>
+        <div class="bill-block">
+          <div class="bill-label">PAYMENT INFO</div>
+          <input class="bill-input" id="pay-bank" placeholder="Bank Name" />
+          <input class="bill-input" id="pay-account" placeholder="Account Number" />
+          <input class="bill-input" id="pay-routing" placeholder="Routing / IBAN" />
+          <input class="bill-input" id="pay-method" placeholder="Payment Method (e.g. Wire, PayPal)" />
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <div class="items-section">
+        <table class="items-table" id="items-table">
+          <thead>
+            <tr>
+              <th class="col-desc">Description</th>
+              <th class="col-qty">Qty</th>
+              <th class="col-price">Unit Price</th>
+              <th class="col-disc">Discount</th>
+              <th class="col-tax">Tax %</th>
+              <th class="col-total">Total</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="items-body">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+
+        <div class="items-actions">
+          <button class="btn btn-ghost" onclick="addBlankRow()"><i class="fa-solid fa-plus"></i> Add Item</button>
+          <div class="catalog-dropdown">
+            <button class="btn btn-ghost" onclick="toggleCatalog()"><i class="fa-solid fa-list"></i> Add from Catalog</button>
+            <div class="catalog-popup" id="catalog-popup">
+              <input class="catalog-search" id="catalog-search" placeholder="Search products..." oninput="renderCatalogList()" />
+              <div class="catalog-list" id="catalog-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Totals -->
+      <div class="totals-section">
+        <div class="notes-block">
+          <div class="bill-label">NOTES</div>
+          <textarea id="inv-notes" placeholder="Payment terms, thank you message, or any notes..." rows="4"></textarea>
+        </div>
+        <div class="totals-block">
+          <div class="total-row">
+            <span>Subtotal</span>
+            <span id="total-subtotal">0.00</span>
+          </div>
+          <div class="total-row">
+            <span>Discount</span>
+            <span id="total-discount">0.00</span>
+          </div>
+          <div class="total-row">
+            <span>Tax</span>
+            <span id="total-tax">0.00</span>
+          </div>
+          <div class="total-row shipping-row">
+            <span>Shipping / Other</span>
+            <input type="number" id="total-shipping" value="0" min="0" oninput="recalculate()" />
+          </div>
+          <div class="total-row grand">
+            <span>TOTAL DUE</span>
+            <span id="total-grand">0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="invoice-footer">
+        <p id="inv-footer-text">Thank you for your business!</p>
+        <p class="powered" id="inv-powered-text">Powered by InvoicePro</p>
+      </div>
+
+    </div><!-- /invoice-card -->
+  </div>
+
+  <!-- ========== TAB: PRODUCTS & SERVICES ========== -->
+  <div class="tab-panel" id="tab-products">
+    <div class="page-header">
+      <h1>Products & Services</h1>
+      <button class="btn btn-primary" onclick="openProductModal()"><i class="fa-solid fa-plus"></i> Add New</button>
+    </div>
+
+    <div class="products-grid" id="products-grid">
+      <!-- cards injected by JS -->
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="product-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modal-title">Add Product / Service</h3>
+          <button class="modal-close" onclick="closeProductModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name *</label>
+              <input id="p-name" placeholder="Product or service name" />
+            </div>
+            <div class="form-group">
+              <label>Type</label>
+              <select id="p-type">
+                <option>Product</option>
+                <option>Service</option>
+                <option>Subscription</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="p-desc" placeholder="Short description shown on invoice" rows="2"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Unit Price *</label>
+              <input id="p-price" type="number" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group">
+              <label>Default Tax %</label>
+              <input id="p-tax" type="number" placeholder="0" min="0" max="100" />
+            </div>
+            <div class="form-group">
+              <label>Unit</label>
+              <input id="p-unit" placeholder="hrs, kg, pcs..." />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Category / Tags</label>
+            <input id="p-category" placeholder="e.g. Design, Development, Hardware" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="closeProductModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveProduct()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: SETTINGS ========== -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="page-header">
+      <h1>Settings</h1>
+      <button class="btn btn-primary" onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+    </div>
+
+    <div class="settings-grid">
+
+      <!-- Company Info -->
+      <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-building"></i> Company Information</div>
+        <div class="form-group">
+          <label>Company Logo</label>
+          <div class="logo-upload-wrap">
+            <img id="logo-preview-settings" src="" style="display:none; max-height:80px; border-radius:8px;"/>
+            <label class="upload-btn" for="logo-upload"><i class="fa-solid fa-upload"></i> Upload Logo</label>
+            <input type="file" id="logo-upload" accept="image/*" onchange="handleLogoUpload(event)" style="display:none"/>
+            <button class="btn btn-ghost btn-sm" onclick="removeLogo()">Remove</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Company Name</label>
+            <input id="s-company-name" placeholder="Your Company Name" />
+          </div>
+          <div class="form-group">
+            <label>Tagline</label>
+            <input id="s-tagline" placeholder="Professional Services" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <textarea id="s-address" rows="2" placeholder="Street, City, ZIP, Country"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input id="s-email" placeholder="contact@company.com" />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input id="s-phone" placeholder="+1 234 567 8900" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input id="s-website" placeholder="www.company.com" />
+        </div>
+        <div class="form-group">
+          <label>Tax / VAT Number</label>
+          <input id="s-taxnum" placeholder="VAT123456789" />
+        </div>
+      </div>
+
+      <!-- Currency & Format -->
+      <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-coins"></i> Currency & Format</div>
+        <div class="form-group">
+          <label>Currency</label>
+          <select id="s-currency" onchange="updateCurrencyPreview()">
+            <option value="USD">🇺🇸 USD — US Dollar ($)</option>
+            <option value="EUR">🇪🇺 EUR — Euro (€)</option>
+            <option value="GBP">🇬🇧 GBP — British Pound (£)</option>
+            <option value="PKR">🇵🇰 PKR — Pakistani Rupee (₨)</option>
+            <option value="INR">🇮🇳 INR — Indian Rupee (₹)</option>
+            <option value="AED">🇦🇪 AED — UAE Dirham (د.إ)</option>
+            <option value="SAR">🇸🇦 SAR — Saudi Riyal (﷼)</option>
+            <option value="CAD">🇨🇦 CAD — Canadian Dollar (CA$)</option>
+            <option value="AUD">🇦🇺 AUD — Australian Dollar (A$)</option>
+            <option value="JPY">🇯🇵 JPY — Japanese Yen (¥)</option>
+            <option value="CNY">🇨🇳 CNY — Chinese Yuan (¥)</option>
+            <option value="CHF">🇨🇭 CHF — Swiss Franc (CHF)</option>
+            <option value="SGD">🇸🇬 SGD — Singapore Dollar (S$)</option>
+            <option value="MYR">🇲🇾 MYR — Malaysian Ringgit (RM)</option>
+            <option value="BDT">🇧🇩 BDT — Bangladeshi Taka (৳)</option>
+            <option value="TRY">🇹🇷 TRY — Turkish Lira (₺)</option>
+            <option value="BRL">🇧🇷 BRL — Brazilian Real (R$)</option>
+            <option value="ZAR">🇿🇦 ZAR — South African Rand (R)</option>
+            <option value="NGN">🇳🇬 NGN — Nigerian Naira (₦)</option>
+            <option value="KWD">🇰🇼 KWD — Kuwaiti Dinar (KD)</option>
+            <option value="QAR">🇶🇦 QAR — Qatari Riyal (QR)</option>
+            <option value="OMR">🇴🇲 OMR — Omani Rial (﷼)</option>
+            <option value="BHD">🇧🇭 BHD — Bahraini Dinar (BD)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date Format</label>
+            <select id="s-dateformat">
+              <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Default Tax %</label>
+            <input id="s-defaulttax" type="number" value="0" min="0" max="100" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Default Payment Terms</label>
+          <input id="s-terms" placeholder="e.g. Net 30" />
+        </div>
+        <div class="currency-preview" id="currency-preview">
+          Preview: <strong id="currency-preview-val">$1,234.56</strong>
+        </div>
+      </div>
+
+      <!-- Invoice Branding -->
+      <div class="settings-card">
+        <div class="settings-card-title"><i class="fa-solid fa-palette"></i> Invoice Branding</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Accent Color</label>
+            <input type="color" id="s-accent" value="#1a1a2e" oninput="applyAccent(this.value)" />
+          </div>
+          <div class="form-group">
+            <label>Invoice Prefix</label>
+            <input id="s-prefix" placeholder="INV-" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Footer Message</label>
+          <input id="s-footer" placeholder="Thank you for your business!" />
+        </div>
+        <div class="form-group">
+          <label>"Powered By" Text</label>
+          <input id="s-powered" placeholder="Powered by InvoicePro" />
+        </div>
+        <div class="form-group">
+          <label>Default Notes</label>
+          <textarea id="s-notes" rows="2" placeholder="Default notes shown on every invoice"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+
+<script src="app.js"></script>
+</body>
+</html>
