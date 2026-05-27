@@ -33,9 +33,6 @@ InvoicePro solves this by:
 
 * Frontend: HTML, CSS, JavaScript
 * UI/UX: Responsive Design
-* Optional Backend: Node.js / Express
-* Database: MongoDB or Firebase
-
 ---
 
 ## How It Works
@@ -54,27 +51,9 @@ InvoicePro solves this by:
 * Email invoice directly to clients
 * Invoice history
 * Tax and discount support
-* Multi-user dashboard
-* Dark mode
-
 ---
 
-## Installation
 
-```bash
-git clone https://github.com/yourusername/invoicepro.git
-cd invoicepro
-npm install
-npm start
-```
-
----
-
-## Usage
-
-```bash
-npm run dev
-```
 
 Open the project in your browser and start generating invoices.
 
